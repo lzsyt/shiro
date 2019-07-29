@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wangzhixuan.mapper.StatementVoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wangzhixuan.model.vo.StatementVo">
+        <result column="date" property="date"/>
+        <result column="data" property="data"/>
+    </resultMap>
+
+    <select id="find" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT
+			count(DISTINCT t.ip ) as data ,
+			DATE_FORMAT( t.visitor_time, '%m' ) as date
+		FROM
+		(
+			  SELECT a.* FROM (
+                  select * from visitor
+                      <where>
+                          <if test="website!=null and website=='光合硅能'">
+                              visitor_pageName not LIKE '%手机%'
+                          </if>
+                      </where>
+			  ) AS a
+		      <where>
+					<if test="website!=null and website!=''">
+                        visitor_pageName LIKE '%${website}%'
+					</if>
+			  </where>
+		) AS t
+		WHERE
+			DATE_FORMAT( t.visitor_time, '%y' ) = #{year}
+		GROUP BY
+			DATE_FORMAT( t.visitor_time, '%m' )
+    </select>
+
+	<select id="quaryMonth" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		  count(DISTINCT t.ip) as data ,
+		  DATE_FORMAT(t.visitor_time,'%e') as date
+		from (
+			SELECT a.* FROM (
+				select * from visitor
+					<where>
+						<if test="website!=null and website=='光合硅能'">
+							visitor_pageName not LIKE '%手机%'
+						</if>
+					</where>
+				) AS a
+				<where>
+					<if test="website!=null and website!=''">
+						visitor_pageName LIKE '%${website}%'
+					</if>
+				</where>
+		) as t
+		 where DATE_FORMAT(t.visitor_time,'%m') = #{month} and DATE_FORMAT( t.visitor_time, '%y' ) = #{year}
+		 GROUP BY  DATE_FORMAT(t.visitor_time,'%e')
+	</select>
+
+	<select id="findYear" resultType="java.lang.Integer">
+		select DATE_FORMAT(visitor_time,'%y') from visitor GROUP BY DATE_FORMAT(visitor_time,'%y')
+	</select>
+
+</mapper>
